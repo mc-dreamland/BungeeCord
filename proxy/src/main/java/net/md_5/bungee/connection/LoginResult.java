@@ -10,6 +10,6 @@ public class LoginResult
 {
 
     private String id;
-    private String name;
+    public String name;
     private Property[] properties;
 }
