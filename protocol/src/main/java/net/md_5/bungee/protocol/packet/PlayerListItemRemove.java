@@ -1,42 +1,39 @@
 package net.md_5.bungee.protocol.packet;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
+import java.util.UUID;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.protocol.AbstractPacketHandler;
 import net.md_5.bungee.protocol.DefinedPacket;
 import net.md_5.bungee.protocol.ProtocolConstants;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class SystemChat extends DefinedPacket
+public class PlayerListItemRemove extends DefinedPacket
 {
 
-    private String message;
-    private int position;
+    private UUID[] uuids;
 
     @Override
     public void read(ByteBuf buf, ProtocolConstants.Direction direction, int protocolVersion)
     {
-        message = readString( buf, 262144 );
-        position = ( protocolVersion >= ProtocolConstants.MINECRAFT_1_19_1 ) ? ( ( buf.readBoolean() ) ? ChatMessageType.ACTION_BAR.ordinal() : 0 ) : readVarInt( buf );
+        uuids = new UUID[ DefinedPacket.readVarInt( buf ) ];
+        for ( int i = 0; i < uuids.length; i++ )
+        {
+            uuids[i] = DefinedPacket.readUUID( buf );
+        }
     }
 
     @Override
     public void write(ByteBuf buf, ProtocolConstants.Direction direction, int protocolVersion)
     {
-        writeString( message, buf, 262144 );
-        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_19_1 )
+        DefinedPacket.writeVarInt( uuids.length, buf );
+        for ( UUID uuid : uuids )
         {
-            buf.writeBoolean( position == ChatMessageType.ACTION_BAR.ordinal() );
-        } else
-        {
-            writeVarInt( position, buf );
+            DefinedPacket.writeUUID( uuid, buf );
         }
     }
 
